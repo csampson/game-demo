@@ -1,0 +1,26 @@
+import * as Phaser from "phaser";
+import { createRoot } from "react-dom/client";
+import { DungeonScene } from "./scenes/DungeonScene";
+import { Hud } from "./ui/Hud";
+
+const config = {
+  type: Phaser.AUTO,
+  parent: "app",
+  scale: {
+    mode: Phaser.Scale.RESIZE,
+    width: window.innerWidth,
+    height: window.innerHeight
+  },
+  physics: {
+    default: "arcade",
+    arcade: {
+      debug: false
+    }
+  },
+  scene: [DungeonScene]
+};
+
+new Phaser.Game(config);
+
+const hudRoot = document.getElementById("hud-root")!;
+createRoot(hudRoot).render(<Hud />);
