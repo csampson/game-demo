@@ -1,4 +1,6 @@
 import * as Phaser from "phaser";
+import { getJoystickVector } from "../ui/joystickStore";
+import { consumeAttackRequest, consumeShieldRequest } from "../ui/touchControlsStore";
 
 const FRAME_SIZE = 100;
 const MOVE_SPEED = 160;
@@ -18,6 +20,7 @@ const PROJECTILE_COOLDOWN_MS = 500;
 const KNOCKBACK_SPEED = 220;
 const KNOCKBACK_DURATION_MS = 150;
 const ATTACK_COOLDOWN_MS = 500;
+const JOYSTICK_DEADZONE = 0.15;
 
 export interface ProjectileSpawn {
   x: number;
@@ -246,7 +249,10 @@ export class Hero extends Phaser.Physics.Arcade.Sprite {
   }
 
   private updateShield(): void {
-    if (Phaser.Input.Keyboard.JustDown(this.keys.shield) && !this.shieldActive) {
+    const shieldPressed = Phaser.Input.Keyboard.JustDown(this.keys.shield);
+    const shieldTapped = consumeShieldRequest();
+
+    if ((shieldPressed || shieldTapped) && !this.shieldActive) {
       this.activateShield();
     }
 
@@ -290,8 +296,11 @@ export class Hero extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
+    const attackPressed = Phaser.Input.Keyboard.JustDown(this.keys.attack);
+    const attackTapped = consumeAttackRequest();
+
     if (
-      Phaser.Input.Keyboard.JustDown(this.keys.attack) &&
+      (attackPressed || attackTapped) &&
       !this.attacking &&
       this.scene.time.now - this.lastAttackAt >= ATTACK_COOLDOWN_MS
     ) {
@@ -306,17 +315,26 @@ export class Hero extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
-    const moveX = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
-    const moveY = (this.keys.down.isDown ? 1 : 0) - (this.keys.up.isDown ? 1 : 0);
-    const velocity = new Phaser.Math.Vector2(moveX, moveY);
+    const joystick = getJoystickVector();
+    const joystickVector = new Phaser.Math.Vector2(joystick.x, joystick.y);
 
-    if (velocity.length() > 0) {
-      velocity.normalize().scale(MOVE_SPEED);
+    let inputVector: Phaser.Math.Vector2;
+    if (joystickVector.length() > JOYSTICK_DEADZONE) {
+      inputVector = joystickVector;
+    } else {
+      const moveX = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
+      const moveY = (this.keys.down.isDown ? 1 : 0) - (this.keys.up.isDown ? 1 : 0);
+      inputVector = new Phaser.Math.Vector2(moveX, moveY);
+      if (inputVector.length() > 0) {
+        inputVector.normalize();
+      }
     }
+
+    const velocity = inputVector.clone().scale(MOVE_SPEED);
     this.setVelocity(velocity.x, velocity.y);
 
-    if (moveX < 0) this.facingLeft = true;
-    else if (moveX > 0) this.facingLeft = false;
+    if (inputVector.x < 0) this.facingLeft = true;
+    else if (inputVector.x > 0) this.facingLeft = false;
     this.setFlipX(this.facingLeft);
 
     const nextAnim = velocity.length() > 0 ? "soldier-walk" : "soldier-idle";

@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { DungeonScene } from "./scenes/DungeonScene";
 import { ForestScene } from "./scenes/ForestScene";
 import { Hud } from "./ui/Hud";
+import { VirtualJoystick } from "./ui/VirtualJoystick";
+import { TouchActionButtons } from "./ui/TouchActionButtons";
 
 const config = {
   type: Phaser.AUTO,
@@ -24,4 +26,10 @@ const config = {
 new Phaser.Game(config);
 
 const hudRoot = document.getElementById("hud-root")!;
-createRoot(hudRoot).render(<Hud />);
+createRoot(hudRoot).render(
+  <>
+    <Hud />
+    <VirtualJoystick />
+    <TouchActionButtons />
+  </>
+);
