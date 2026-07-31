@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import { createRoot } from "react-dom/client";
 import { DungeonScene } from "./scenes/DungeonScene";
+import { ForestScene } from "./scenes/ForestScene";
 import { Hud } from "./ui/Hud";
 
 const config = {
@@ -17,7 +18,7 @@ const config = {
       debug: false
     }
   },
-  scene: [DungeonScene]
+  scene: [ForestScene, DungeonScene]
 };
 
 new Phaser.Game(config);

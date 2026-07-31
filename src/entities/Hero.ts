@@ -17,7 +17,7 @@ const AURA_ALPHA = 0.8;
 const PROJECTILE_COOLDOWN_MS = 500;
 const KNOCKBACK_SPEED = 220;
 const KNOCKBACK_DURATION_MS = 150;
-const ATTACK_COOLDOWN_MS = 800;
+const ATTACK_COOLDOWN_MS = 500;
 
 export interface ProjectileSpawn {
   x: number;
@@ -100,6 +100,16 @@ export class Hero extends Phaser.Physics.Arcade.Sprite {
       new URL("../assets/sprites/characters/Soldier/Soldier with shadows/Soldier_Attack01.png", import.meta.url).href,
       { frameWidth: FRAME_SIZE, frameHeight: FRAME_SIZE }
     );
+    scene.load.spritesheet(
+      "soldier-hurt",
+      new URL("../assets/sprites/characters/Soldier/Soldier with shadows/Soldier_Hurt.png", import.meta.url).href,
+      { frameWidth: FRAME_SIZE, frameHeight: FRAME_SIZE }
+    );
+    scene.load.spritesheet(
+      "soldier-death",
+      new URL("../assets/sprites/characters/Soldier/Soldier with shadows/Soldier_Death.png", import.meta.url).href,
+      { frameWidth: FRAME_SIZE, frameHeight: FRAME_SIZE }
+    );
   }
 
   static createAnimations(scene: Phaser.Scene): void {
@@ -120,7 +130,19 @@ export class Hero extends Phaser.Physics.Arcade.Sprite {
     scene.anims.create({
       key: "soldier-attack",
       frames: scene.anims.generateFrameNumbers("soldier-attack"),
-      frameRate: 16,
+      frameRate: 20,
+      repeat: 0
+    });
+    scene.anims.create({
+      key: "soldier-hurt",
+      frames: scene.anims.generateFrameNumbers("soldier-hurt"),
+      frameRate: 10,
+      repeat: 0
+    });
+    scene.anims.create({
+      key: "soldier-death",
+      frames: scene.anims.generateFrameNumbers("soldier-death"),
+      frameRate: 8,
       repeat: 0
     });
   }
@@ -169,6 +191,9 @@ export class Hero extends Phaser.Physics.Arcade.Sprite {
 
     if (this.currentHp === 0) {
       this.die();
+    } else {
+      this.attacking = false;
+      this.play("soldier-hurt");
     }
   }
 
@@ -189,6 +214,7 @@ export class Hero extends Phaser.Physics.Arcade.Sprite {
   private die(): void {
     this.dead = true;
     this.setVelocity(0, 0);
+    this.play("soldier-death");
   }
 
   tryFireProjectile(targetX: number, targetY: number): ProjectileSpawn | null {
